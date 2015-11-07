@@ -211,6 +211,32 @@ class Tax
         $this->attributes['labels'] = $this->labels;
         register_taxonomy($this->name, $this->postType, $this->attributes);
     }
+    
+    /**
+     * Инициализирует заголовки
+     * @param string $sing1 ед.число именительный падеж (например: "метка", "категория")
+     * @param string $sing2 ед.число винительный падеж (например: "метку", "категорию")
+     * @param string $many1 мн.число именительный падеж (например: "метки", "категории")
+     * @param string $many2 мн.число родительный падеж (например: "меток", "категорий")
+     * @param string $menuName пункт меню
+     */
+    public function initLabels($sing1, $sing2, $many1, $many2, $menuName = null) {
+        $this->labels = [
+            'name'              => $many1,
+            'singular_name'     => $sing1,
+            'search_items'      => "Поиск {$many2}",
+            'popular_items'       => "Популярные {$many1}",
+            'all_items'         => "Все {$many1}",
+            'parent_item'       => "{$sing1} родитель",
+            'parent_item_colon' => "{$sing1} родитель: ",
+            'edit_item'         => "Редактировать {$sing2}",
+            'update_item'       => "Обновить {$sing2}",
+            'add_new_item'      => "Добавить {$sing2}",
+            "view_item"         => "Посмотреть {$sing2}",
+            'new_item_name'     => "Создать {$sing2}",
+            "menu_name"         => is_null($menuName) ? $many1 : $menuName
+        ];
+    }
 }
 
 /**
@@ -312,6 +338,28 @@ class PostType
         $this->attributes['labels'] = $this->labels;
         register_post_type($this->type, $this->attributes);
     }
+    
+    /**
+     * Инициализирует заголовки
+     * @param string $sing  единственное число именительный падеж
+     * @param string $many множественное число именительный падеж
+     * @param string $menuName название меню в админке
+     */
+    public function initLabels($sing, $many, $menuName = null) {
+        $this->labels = [
+            "name"                  => $many,
+            "singular_name"         => $sing,
+            "add_new"               => "Добавить новый",
+            "add_new_item"          => "Добавить новый {$sing}",
+            "edit_item"             => "Редактировать {$sing}",
+            "new_item"              => "Новый {$sing}",
+            "view_item"             => "Посмотреть",
+            "search_items"          => "Найти {$sing}",
+            "not_found"             => "{$many} не найдены",
+            "not_found_in_trash"    => "{$many} в корзине не найдены",
+            "menu_name"             => is_null($menuName) ? $sing : $menuName
+        ];
+    }
 }
 
 /**
@@ -323,7 +371,7 @@ class MetaboxForm
      * Список элементов бокса
      * @var MetaboxFormType[] 
      */
-    private $attributes = [];
+    private $items = [];
     
     public $id;
     public $title;
@@ -352,7 +400,7 @@ class MetaboxForm
     }
 
     public function addItem(MetaboxFormType $item) {
-        $this->attributes[] = $item;
+        $this->items[] = $item;
     }
     
     /**
@@ -361,7 +409,7 @@ class MetaboxForm
      * @param callable $callback функция в параметре которой отправялетя ССЫЛКА на список атриубтов
      */
     public function init($callback) {
-        call_user_func_array($callback, [& $this->attributes]);
+        call_user_func_array($callback, [& $this->items]);
     }
 
     /**
@@ -369,8 +417,8 @@ class MetaboxForm
      */
     public function render() {
         wp_nonce_field($this->id, sha1($this->id));
-        foreach ($this->attributes as $attr) {
-            echo $attr->render();
+        foreach ($this->items as $item) {
+            echo $item->render();
         }
     }
     
@@ -381,8 +429,8 @@ class MetaboxForm
      */
     public function save($idPost) {
         if ($this->validate()) {
-            foreach ($this->attributes as $attr) {
-                $attr->save($idPost);
+            foreach ($this->items as $item) {
+                $item->save($idPost);
             }
             return true;
         }
