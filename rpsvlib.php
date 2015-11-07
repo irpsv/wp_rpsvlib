@@ -549,3 +549,95 @@ class MetaboxFormType
         call_user_func([$this,'save'],$idPost);
     }
 }
+
+/**
+ * Класс для создания меню в админке
+ */
+class AdminMenu {
+    /**
+     * Дочерние элементы меню
+     * @var array
+     */
+    private $items = [];
+    
+    /**
+     * Заголовок страницы (тэг <title>)
+     * @var string 
+     */
+    public $pageTitle;
+    /**
+     * Название пункта меню
+     * @var string
+     */
+    public $menuTitle;
+    /**
+     * Права пользователя (по умолчанию как у администратора)
+     * @var array
+     */
+    public $capability;
+    /**
+     * Уникальное название меню
+     * @var string
+     */
+    public $menuSlug;
+    /**
+     * Функция которая выводит содержание страницы
+     * @var mixed
+     */
+    public $function;
+    /**
+     * Путь до иконки пункта меню
+     * @var string
+     */
+    public $iconUrl;
+    /**
+     * Позиция в списке меню
+     * @var int
+     */
+    public $position;
+    
+    public function __construct() {
+        $this->init();
+        add_action('admin_menu',[$this,'register']);
+    }
+    
+    public function addItem($pageTitle, $menuTitle, $menuSlug, $capability = null, $function = null) {
+        $item = [
+            'page_title' => $pageTitle,
+            'menu_title' => $menuTitle,
+            'capability' => is_null($capability) ? $this->capability : $capability,
+            'menu_slug'  => $menuSlug,
+        ];
+        if (!is_null($function)) {
+            $item['function'] = $function;
+        }
+        $this->items[] = $item;
+    }
+
+    public function init() {
+        $this->iconUrl = '';
+        $this->capability = get_role('administrator')->capabilities;
+    }
+
+    public function register() {
+        add_menu_page(
+            $this->pageTitle,
+            $this->menuTitle,
+            $this->capability,
+            $this->menuSlug,
+            $this->function,
+            $this->iconUrl,
+            $this->position
+        );
+        foreach ($this->items as $item) {
+            add_submenu_page(
+                $this->menuSlug,
+                $item['page_title'],
+                $item['menu_title'],
+                $item['capability'],
+                $item['menu_slug'],
+                $item['function']
+            );
+        }
+    }
+}
