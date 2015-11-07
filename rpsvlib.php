@@ -218,6 +218,56 @@ class Tax
  */
 class PostType
 {
+    /*
+     * ОПИСАНИЕ для констант взято с сайта http://wp-kama.ru
+     */
+    
+    /**
+     * блок заголовка
+     */
+    const SUPPORTS_TITLE = 'title';
+    /**
+     * блок ввода контента
+     */
+    const SUPPORTS_TITLE = 'editor';
+    /**
+     * блок выбора автора
+     */
+    const SUPPORTS_TITLE = 'author';
+    /**
+     * блок миниатюры
+     */
+    const SUPPORTS_TITLE = 'thumbnail';
+    /**
+     * блок ввода цитаты
+     */
+    const SUPPORTS_TITLE = 'excerpt';
+    /**
+     * блок уведомлений
+     */
+    const SUPPORTS_TITLE = 'trackbacks';
+    /**
+     *  блок установки произвольных полей
+     */
+    const SUPPORTS_TITLE = 'custom-fields';
+    /**
+     * блок комментариев
+     */
+    const SUPPORTS_TITLE = 'comments';
+    /**
+     * блок ревизий (не отображается пока нет ревизий)
+     */
+    const SUPPORTS_TITLE = 'revisions';
+    /**
+     * блок атрибутов постоянных страниц
+     * (шаблон и древовидная связь записей, древовидность должна быть включена)
+     */
+    const SUPPORTS_TITLE = 'page-attributes';
+    /**
+     * блок форматов записи, если они включены в теме
+     */
+    const SUPPORTS_TITLE = 'post-formats';
+    
     /**
      * Атрибуты типа записи
      * @var array
