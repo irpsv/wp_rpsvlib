@@ -140,6 +140,24 @@ abstract class HtmlHelper
         }
         return $out.'</select>';
     }
+    
+    /**
+     * Отрисовывает и возвращает содержимое файла (буфер отчищается)
+     * @param string $path путь до файла, который необходимо подключить
+     * @param array $attributes список атрибутов, которые будут распакованы в переменные
+     * @return string
+     */
+    public static function renderFile($path, $attributes) {
+        ob_start();
+        try {
+            extract($attributes, EXTR_OVERWRITE);
+            include $path;
+            return ob_get_contents();
+        }
+        finally {
+            ob_end_clean();
+        }
+    }
 }
 
 /**
