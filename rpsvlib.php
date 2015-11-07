@@ -4,7 +4,7 @@
  * Один единственный файл библиотеки для удобства подключения,
  * да и не так уж и много здесь кода.
  * 
- * @version 0.9.0
+ * @version 0.9.1
  */
 
 namespace RPSV;
@@ -222,7 +222,9 @@ class PostType
      * Атрибуты типа записи
      * @var array
      */
-    private $attributes = [];
+    private $attributes = [
+        "public" => true
+    ];
     /**
      * Название типа записи
      * @var string
