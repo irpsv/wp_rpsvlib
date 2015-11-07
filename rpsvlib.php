@@ -4,7 +4,7 @@
  * Один единственный файл библиотеки для удобства подключения,
  * да и не так уж и много здесь кода.
  * 
- * @version 0.9.5
+ * @version 0.9.6
  */
 
 namespace RPSV;
@@ -367,8 +367,8 @@ class PostType
         $this->labels = [
             "name"                  => $many,
             "singular_name"         => $sing,
-            "add_new"               => "Добавить новый",
-            "add_new_item"          => "Добавить новый {$sing}",
+            "add_new"               => "Добавить {$sing}",
+            "add_new_item"          => "Добавить {$sing}",
             "edit_item"             => "Редактировать {$sing}",
             "new_item"              => "Новый {$sing}",
             "view_item"             => "Посмотреть",
