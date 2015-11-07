@@ -4,7 +4,7 @@
  * Один единственный файл библиотеки для удобства подключения,
  * да и не так уж и много здесь кода.
  * 
- * @version 0.9.6
+ * @version 0.9.7
  */
 
 namespace RPSV;
@@ -273,44 +273,44 @@ class PostType
     /**
      * блок ввода контента
      */
-    const SUPPORTS_TITLE = 'editor';
+    const SUPPORTS_EDITOR = 'editor';
     /**
      * блок выбора автора
      */
-    const SUPPORTS_TITLE = 'author';
+    const SUPPORTS_AUTHOR = 'author';
     /**
      * блок миниатюры
      */
-    const SUPPORTS_TITLE = 'thumbnail';
+    const SUPPORTS_THUMB = 'thumbnail';
     /**
      * блок ввода цитаты
      */
-    const SUPPORTS_TITLE = 'excerpt';
+    const SUPPORTS_EXCERPT = 'excerpt';
     /**
      * блок уведомлений
      */
-    const SUPPORTS_TITLE = 'trackbacks';
+    const SUPPORTS_TRACKBACKS = 'trackbacks';
     /**
      *  блок установки произвольных полей
      */
-    const SUPPORTS_TITLE = 'custom-fields';
+    const SUPPORTS_CUSTOM_FIELDS = 'custom-fields';
     /**
      * блок комментариев
      */
-    const SUPPORTS_TITLE = 'comments';
+    const SUPPORTS_COMMENTS = 'comments';
     /**
      * блок ревизий (не отображается пока нет ревизий)
      */
-    const SUPPORTS_TITLE = 'revisions';
+    const SUPPORTS_REVISIONS = 'revisions';
     /**
      * блок атрибутов постоянных страниц
      * (шаблон и древовидная связь записей, древовидность должна быть включена)
      */
-    const SUPPORTS_TITLE = 'page-attributes';
+    const SUPPORTS_PAGE_ATTRIBUTES = 'page-attributes';
     /**
      * блок форматов записи, если они включены в теме
      */
-    const SUPPORTS_TITLE = 'post-formats';
+    const SUPPORTS_POST_FORMATS = 'post-formats';
     
     /**
      * Атрибуты типа записи
