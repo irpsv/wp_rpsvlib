@@ -150,7 +150,9 @@ abstract class HtmlHelper
     public static function renderFile($path, $attributes) {
         ob_start();
         try {
-            extract($attributes, EXTR_OVERWRITE);
+            if (is_array($attributes) && !empty($attributes)) {
+                extract($attributes, EXTR_OVERWRITE);
+            }
             include $path;
             return ob_get_contents();
         }
@@ -172,6 +174,26 @@ abstract class RequestHelper {
      */
     public static function getRequestPostValue($name, $defaultValue = null) {
         return ArrayHelper::getIsSet($name, $_POST, $defaultValue);
+    }
+    
+    /**
+     * Возвращает значение переменной из глобальной переменной $_GET
+     * @param string $name имя искомого поля
+     * @param mixed $defaultValue значение которое вернется, если данного поля не существует
+     * @return mixed
+     */
+    public static function getRequestGetValue($name, $defaultValue = null) {
+        return ArrayHelper::getIsSet($name, $_GET, $defaultValue);
+    }
+    
+    /**
+     * Возвращает значение переменной из глобальной переменной $_REQUEST
+     * @param string $name имя искомого поля
+     * @param mixed $defaultValue значение которое вернется, если данного поля не существует
+     * @return mixed
+     */
+    public static function getRequestValue($name, $defaultValue = null) {
+        return ArrayHelper::getIsSet($name, $_REQUEST, $defaultValue);
     }
 }
 
@@ -316,9 +338,7 @@ class PostType
      * Атрибуты типа записи
      * @var array
      */
-    private $attributes = [
-        "public" => true
-    ];
+    private $attributes;
     /**
      * Название типа записи
      * @var string
@@ -331,7 +351,7 @@ class PostType
     public $labels;
     
     public function __set($name, $value) {
-        if (in_array($name, ['type','labels'])) {
+        if (in_array($name, ['type','labels','attributes'])) {
             $this->$name = $value;
         }
         else {
@@ -345,7 +365,7 @@ class PostType
      * @param array $labels заголовки типа
      * @param array $attributes атрибуты типа
      */
-    public function __construct($postType, $labels = [], $attributes = []) {
+    public function __construct($postType, $labels = [], $attributes = ["public" => true]) {
         $this->type = $postType;
         $this->labels = $labels;
         $this->attributes = $attributes;
@@ -375,7 +395,7 @@ class PostType
             "search_items"          => "Найти {$sing}",
             "not_found"             => "{$many} не найдены",
             "not_found_in_trash"    => "{$many} в корзине не найдены",
-            "menu_name"             => is_null($menuName) ? $sing : $menuName
+            "menu_name"             => is_null($menuName) ? $many : $menuName
         ];
     }
 }
