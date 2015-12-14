@@ -262,19 +262,19 @@ class Tax
      */
     public function initLabels($sing1, $sing2, $many1, $many2, $menuName = null) {
         $this->labels = [
-            'name'              => $many1,
-            'singular_name'     => $sing1,
+            'name'              => mb_convert_case($many1,MB_CASE_TITLE),
+            'singular_name'     => mb_convert_case($sing1,MB_CASE_TITLE),
             'search_items'      => "Поиск {$many2}",
-            'popular_items'       => "Популярные {$many1}",
+            'popular_items'     => "Популярные {$many1}",
             'all_items'         => "Все {$many1}",
-            'parent_item'       => "{$sing1} родитель",
-            'parent_item_colon' => "{$sing1} родитель: ",
+            'parent_item'       => mb_convert_case($sing1,MB_CASE_TITLE)." родитель",
+            'parent_item_colon' => mb_convert_case($sing1,MB_CASE_TITLE)." родитель: ",
             'edit_item'         => "Редактировать {$sing2}",
             'update_item'       => "Обновить {$sing2}",
             'add_new_item'      => "Добавить {$sing2}",
             "view_item"         => "Посмотреть {$sing2}",
             'new_item_name'     => "Создать {$sing2}",
-            "menu_name"         => is_null($menuName) ? $many1 : $menuName
+            "menu_name"         => is_null($menuName) ? mb_convert_case($many1,MB_CASE_TITLE) : mb_convert_case($menuName,MB_CASE_TITLE)
         ];
     }
 }
@@ -385,17 +385,17 @@ class PostType
      */
     public function initLabels($sing, $many, $menuName = null) {
         $this->labels = [
-            "name"                  => $many,
-            "singular_name"         => $sing,
+            "name"                  => mb_convert_case($many,MB_CASE_TITLE),
+            "singular_name"         => mb_convert_case($sing,MB_CASE_TITLE),
             "add_new"               => "Добавить {$sing}",
             "add_new_item"          => "Добавить {$sing}",
             "edit_item"             => "Редактировать {$sing}",
             "new_item"              => "Новый {$sing}",
             "view_item"             => "Посмотреть",
             "search_items"          => "Найти {$sing}",
-            "not_found"             => "{$many} не найдены",
-            "not_found_in_trash"    => "{$many} в корзине не найдены",
-            "menu_name"             => is_null($menuName) ? $many : $menuName
+            "not_found"             => mb_convert_case($many,MB_CASE_TITLE)." не найдены",
+            "not_found_in_trash"    => mb_convert_case($many,MB_CASE_TITLE)." в корзине не найдены",
+            "menu_name"             => is_null($menuName) ? mb_convert_case($many,MB_CASE_TITLE) : mb_convert_case($menuName,MB_CASE_TITLE)
         ];
     }
 }
