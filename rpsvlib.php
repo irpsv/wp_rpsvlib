@@ -277,6 +277,14 @@ class Tax
             "menu_name"         => is_null($menuName) ? mb_convert_case($many1,MB_CASE_TITLE) : mb_convert_case($menuName,MB_CASE_TITLE)
         ];
     }
+    
+    /**
+     * Инициализация атрибутов таксономии
+     * @param array $attributes
+     */
+    public function initAttibutes(array $attributes) {
+        $this->attributes = $attributes;
+    }
 }
 
 /**
@@ -397,6 +405,14 @@ class PostType
             "not_found_in_trash"    => mb_convert_case($many,MB_CASE_TITLE)." в корзине не найдены",
             "menu_name"             => is_null($menuName) ? mb_convert_case($many,MB_CASE_TITLE) : mb_convert_case($menuName,MB_CASE_TITLE)
         ];
+    }
+    
+    /**
+     * Инициализация атрибутов записи
+     * @param array $attributes
+     */
+    public function initAttibutes(array $attributes) {
+        $this->attributes = $attributes;
     }
 }
 
