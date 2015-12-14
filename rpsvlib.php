@@ -4,10 +4,25 @@
  * Один единственный файл библиотеки для удобства подключения,
  * да и не так уж и много здесь кода.
  * 
- * @version 0.9.11
+ * @version 0.9.12
  */
 
 namespace RPSV;
+
+/**
+ * Класс для добавления скриптов по ходу рендинга представления
+ */
+abstract class JsFooterScript {
+    private static $data = "";
+    
+    public static function add($str) {
+        self::$data .= $str;
+    }
+    
+    public static function render() {
+        echo '<script type="text/javascript">jQuery(function($){'.self::$data.'})</script>';
+    }
+}
 
 /**
  * Класс для работы с массивами и наборами значений
