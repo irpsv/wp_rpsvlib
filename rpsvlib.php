@@ -27,7 +27,7 @@ abstract class JsFooterScript {
 /**
  * Класс содержащий методы которые не вошли в другие классы по каким либо соображениям
  */
-abstract class RPSVstring
+abstract class StringHelper
 {
     public static function isNullStr($str) {
         return is_null($str) || trim($str) == "";
@@ -49,7 +49,7 @@ abstract class RPSVstring
 /**
  * Класс для работы с массивами
  */
-abstract class RPSVarray
+abstract class ArrayHelper
 {
     public static function getIsSet(array $arr, $key, $defaultValue = null) {
         return isset($arr[$key]) ? $arr[$key] : $defaultValue;
@@ -398,18 +398,14 @@ class PostType
     }
 }
 
+
 /**
  * Класс для создание формы метабокса
  */
-class MetaboxForm
+class Metabox
 {
     /**
-     * Список элементов бокса
-     * @var MetaboxFormField[] 
-     */
-    private $items = [];
-    /**
-     * id атрибут HTML тега
+     * ID метабокса
      */
     public $id;
     /**
@@ -420,12 +416,44 @@ class MetaboxForm
     public $context ='advanced';
     public $priority = 'default';
     public $callbackArgs = null;
+    /**
+     * Функция которая отвечает за отрисовку
+     * @var callable
+     */
+    public $renderCallback;
+    /**
+     * Функция которая отвечает за сохранение элемента
+     * @var callable
+     */
+    public $saveCallback;
     
-    public function __construct() {
+    public function __construct($id, $title) {
+        $this->id = $id;
+        $this->title = $title;
+        $this->init();
         add_action('save_post',[$this, 'save']);
         add_action('add_meta_boxes',[$this, 'addMetaBox']);
     }
     
+    public function init() {
+        $this->renderCallback = function($model) {
+            /* @var $model Metabox */
+            global $post;
+            $value = get_post_meta($post->ID, $model->name, true);
+            echo "<input type='text' name='{$model->id}' value='{$value}' />";
+        };
+        $this->saveCallback = function($model, $id_post) {
+            $name = $model->name;
+            $value = ArrayHelper::getOf_POST($name);
+            if (is_null($value) || trim($value) == "") {
+                delete_post_meta($id_post, $name);
+            }
+            else {
+                update_post_meta($id_post, $name, $value);
+            }
+        };
+    }
+
     public function addMetaBox($postType) {
         if ($this->postType == $postType) {
             add_meta_box(
@@ -439,41 +467,25 @@ class MetaboxForm
             );
         }
     }
-
-    public function addItem(MetaboxFormField $item) {
-        $this->items[] = $item;
-    }
     
-    /**
-     * Вызывает функцию, которая создает список элементов бокса.
-     * Данный функционал необходим, например для связки элементов бокса между собой.
-     * @param callable $callback функция в параметре которой отправялетя ССЫЛКА на список атриубтов
-     */
-    public function init($callback) {
-        call_user_func_array($callback, [& $this->items]);
-    }
-
     /**
      * Отрисовка всех элементов бокса
      */
     public function render() {
         wp_nonce_field($this->id, sha1($this->id));
-        foreach ($this->items as $item) {
-            echo $item->render();
-        }
+        $f = $this->renderCallback;
+        $f($this);
     }
     
     /**
      * Сохранение поста
-     * @param int $idPost ID сохраняемого поста
+     * @param int $id_post ID сохраняемого поста
      * @return boolean FALSE - если не прошла валидация, TRUE - иначе
      */
-    public function save($idPost) {
+    public function save($id_post) {
         if ($this->validate()) {
-            foreach ($this->items as $item) {
-                $item->save($idPost);
-            }
-            return true;
+            $f = $this->saveCallback;
+            return $f($this, $id_post);
         }
         return false;
     }
@@ -487,107 +499,11 @@ class MetaboxForm
         global $post;
         if ($post->post_type == $this->postType) {
             return wp_verify_nonce(
-                RequestHelper::getRequestPostValue(sha1($this->id)),
+                ArrayHelper::getOf_POST(sha1($this->id)),
                 $this->id
             );
         }
         return false;
-    }
-}
-
-/**
- * Класс представляющий один элемент формы мета блока
- */
-class MetaboxFormField
-{
-    /**
-     * Имя параметра
-     * @var string
-     */
-    public $name;
-    /**
-     * Заголовок параметра (можно опустить если используется свой RENDER)
-     * @var string
-     */
-    public $label;
-    /**
-     * Тип параметра (можно опустить если используется свой RENDER)
-     * @var string
-     */
-    public $type = 'text';
-    /**
-     * Атрибуты LABEL'a (можно опустить если используется свой RENDER)
-     * @var string 
-     */
-    public $optionsLabel = '';
-    /**
-     * Атрибуты INPUT'а (можно опустить если используется свой RENDER)
-     * @var string 
-     */
-    public $optionsInput = '';
-    /**
-     * Функция которая отвечает за отрисовку
-     * @var callable
-     */
-    public $renderCallback;
-    /**
-     * Функция которая отвечает за сохранение элемента
-     * @var callable
-     */
-    public $saveCallback;
-    
-    public function __construct($config = array()) {
-        foreach ($config as $attribute => $value) {
-            if (isset($this->$attribute)) {
-                $this->$attribute = $value;
-            }
-        }
-        $this->init();
-    }
-    
-    public function init() {
-        $model = $this;
-        //
-        $this->renderCallback = function(& $model) {
-            global $post;
-            echo "<div>";
-            echo HtmlHelper::label($model->name,$model->label,$model->optionsLabel);
-            echo HtmlHelper::input(
-                $model->type,
-                $model->name,
-                $model->name,
-                get_post_meta($post->ID, $model->name, true),
-                $model->optionsInput
-            );
-            echo "</div>";
-        };
-        $this->saveCallback = function(& $model, $idPost) {
-            $name = $model->name;
-            $value = RequestHelper::getRequestPostValue($name);
-            if (is_null($value)) {
-                delete_post_meta($idPost, $name);
-            }
-            else {
-                update_post_meta($idPost, $name, $value);
-            }
-        };
-    }
-
-    /**
-     * Отрисовка текущего элемента
-     */
-    public function render() {
-        ob_start();
-        echo $this->renderCallback($this);
-        return ob_get_clean();
-    }
-    
-    /**
-     * Сохранение поста
-     * @param int $idPost ID сохраняемого поста
-     */
-    public function save($idPost) {
-        $this->saveCallback($this,$idPost);
     }
 }
 
