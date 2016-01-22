@@ -4,7 +4,7 @@
  * Один единственный файл библиотеки для удобства подключения,
  * да и не так уж и много здесь кода.
  * 
- * @version 0.9.12
+ * @version 0.9.14
  */
 
 namespace RPSV;
@@ -594,10 +594,9 @@ class MetaboxFormField
     public $saveCallback;
     
     public function __construct($config = array()) {
-        $attributes = ['name','type','label','optionsLabel','optionsInput'];
-        foreach ($attributes as $attr) {
-            if (isset($config[$attr])) {
-                $this->$attr = $config[$attr];
+        foreach ($config as $attribute => $value) {
+            if (isset($this->$attribute)) {
+                $this->$attribute = $value;
             }
         }
         $this->init();
