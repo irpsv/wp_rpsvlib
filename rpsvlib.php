@@ -363,11 +363,11 @@ class PostType
      * @param array $labels заголовки типа
      * @param array $attributes атрибуты типа
      */
-    public function __construct($postType, $labels = [], $attributes = ["public" => true]) {
+    public function __construct($postType, $labels = [], $attributes = ["public" => true], $priority = 10) {
         $this->type = $postType;
         $this->labels = $labels;
         $this->attributes = $attributes;
-        add_action('init',[$this, 'register']);
+        add_action('init',[$this, 'register'],$priority);
     }
     
     public function register() {
@@ -397,7 +397,6 @@ class PostType
         ];
     }
 }
-
 
 /**
  * Класс для создание формы метабокса
