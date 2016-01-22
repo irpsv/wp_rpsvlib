@@ -20,7 +20,7 @@ abstract class JsFooterScript {
     }
     
     public static function render() {
-        echo '<script type="text/javascript">jQuery(function($){'.self::$data.'})</script>';
+        echo '<script type="text/javascript">jQuery(function($){'.self::$data.';})</script>';
     }
 }
 
@@ -462,11 +462,16 @@ class MetaboxForm
 {
     /**
      * Список элементов бокса
-     * @var MetaboxFormType[] 
+     * @var MetaboxFormField[] 
      */
     private $items = [];
-    
+    /**
+     * id атрибут HTML тега
+     */
     public $id;
+    /**
+     * Заголовок/название блока. Виден пользователям.
+     */
     public $title;
     public $postType = 'post';
     public $context ='advanced';
@@ -492,7 +497,7 @@ class MetaboxForm
         }
     }
 
-    public function addItem(MetaboxFormType $item) {
+    public function addItem(MetaboxFormField $item) {
         $this->items[] = $item;
     }
     
@@ -550,7 +555,7 @@ class MetaboxForm
 /**
  * Класс представляющий один элемент формы мета блока
  */
-class MetaboxFormType
+class MetaboxFormField
 {
     /**
      * Имя параметра
@@ -581,14 +586,14 @@ class MetaboxFormType
      * Функция которая отвечает за отрисовку
      * @var callable
      */
-    public $render;
+    public $renderCallback;
     /**
      * Функция которая отвечает за сохранение элемента
      * @var callable
      */
-    public $save;
+    public $saveCallback;
     
-    public function __construct($config) {
+    public function __construct($config = array()) {
         $attributes = ['name','type','label','optionsLabel','optionsInput'];
         foreach ($attributes as $attr) {
             if (isset($config[$attr])) {
@@ -599,25 +604,24 @@ class MetaboxFormType
     }
     
     public function init() {
-        $this->render = function() {
+        $model = $this;
+        //
+        $this->renderCallback = function(& $model) {
             global $post;
-            //
             echo "<div>";
-            echo HtmlHelper::label($this->name,$this->label,$this->optionsLabel);
+            echo HtmlHelper::label($model->name,$model->label,$model->optionsLabel);
             echo HtmlHelper::input(
-                $this->type,
-                $this->name,
-                $this->name,
-                get_post_meta($post->ID, $this->name, true),
-                $this->optionsInput
+                $model->type,
+                $model->name,
+                $model->name,
+                get_post_meta($post->ID, $model->name, true),
+                $model->optionsInput
             );
             echo "</div>";
         };
-        //
-        $this->save = function($idPost) {
-            $name = $this->name;
+        $this->saveCallback = function(& $model, $idPost) {
+            $name = $model->name;
             $value = RequestHelper::getRequestPostValue($name);
-            //
             if (is_null($value)) {
                 delete_post_meta($idPost, $name);
             }
@@ -631,7 +635,9 @@ class MetaboxFormType
      * Отрисовка текущего элемента
      */
     public function render() {
-        call_user_func([$this,'render']);
+        ob_start();
+        echo $this->renderCallback($this);
+        return ob_get_clean();
     }
     
     /**
@@ -639,7 +645,7 @@ class MetaboxFormType
      * @param int $idPost ID сохраняемого поста
      */
     public function save($idPost) {
-        call_user_func([$this,'save'],$idPost);
+        $this->saveCallback($this,$idPost);
     }
 }
 
