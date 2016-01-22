@@ -25,83 +25,61 @@ abstract class JsFooterScript {
 }
 
 /**
- * Класс для работы с массивами и наборами значений
+ * Класс содержащий методы которые не вошли в другие классы по каким либо соображениям
  */
-abstract class ArrayHelper {
-    /**
-     * Возвращает значение ключа массива если оно существует, иначе возвращает значение по умолчанию
-     * @param string $key интересующий ключ массива
-     * @param array $arr массив с даными
-     * @param mixed $defaultValue значение которое вернется в случае отсутствия искомого элемента
-     * @return midex искомый элемент или же $defaultValue
-     */
-    public static function getIsSet($key, array $arr, $defaultValue = null) {
-        if (isset($arr[$key])) {
-            return $arr[$key];
-        }
-        return $defaultValue;
-    }
-    
-    /**
-     * Возвращает ключ искомого значени
-     * @param mixed $needValue значение для которого нужно вернуть ключ
-     * @param array $arr массив с даными
-     * @param mixed $defaultKey значение которое вернется в случае отсутствия искомого элемента
-     * @return mixed ключ искомого элемента или же $defaultValue
-     */
-    public static function getKeyOfValue($needValue, array $arr, $defaultKey = null) {
-        foreach ($arr as $key => $value) {
-            if ($needValue == $value) {
-                return $key;
-            }
-        }
-        return $defaultKey;
+abstract class RPSVstring
+{
+    public static function isNullStr($str) {
+        return is_null($str) || trim($str) == "";
     }
 
-    /**
-     * Удаляет из массива пустые элементы и пустые строки
-     * @param array $arr
-     */
-    public static function removeToEmptyItem(array $arr, $isRemoveNull = true, $isRemoveNullStr = true) {
-        $ret = [];
-        foreach ($arr as $item) {
-            if (trim($item) === "") {
-                if (!$isRemoveNullStr) {
-                    $ret[] = $item;
-                }
+    public static function substrWithPostfix($str, $length, $postfix) {
+        return substr($str, 0, $length).(strlen($str) > $length ? $postfix : "");
+    }
+
+    public static function generate($str, $count) {
+        $ret = "";
+        while ($count--) {
+            $ret .= $str;
+        }
+        return $ret;
+    }
+}
+
+/**
+ * Класс для работы с массивами
+ */
+abstract class RPSVarray
+{
+    public static function getIsSet(array $arr, $key, $defaultValue = null) {
+        return isset($arr[$key]) ? $arr[$key] : $defaultValue;
+    }
+    
+    public static function getOf_GET($key, $defaultValue = null) {
+        return self::getIsSet($_GET, $key, $defaultValue);
+    }
+    
+    public static function getOf_POST($key, $defaultValue = null) {
+        return self::getIsSet($_POST, $key, $defaultValue);
+    }
+    
+    public static function map($arr, $func, $filterFunc = null) {
+        $ret = array();
+        foreach ($arr as $key => $value) {
+            if (!is_null($filterFunc)
+                    && call_user_func_array($filterFunc, array($key, $value)) == FALSE)
+            {
+                continue;
             }
-            elseif (is_null($item)) {
-                if (!$isRemoveNull) {
-                    $ret[] = $item;
-                }
-            }
-            else {
-                $ret[] = $item;
-            }
+            $ret[$key] = call_user_func($func, $value);
         }
         return $ret;
     }
     
-    /**
-     * Удаляет из ассоциативного массива пустые элементы и пустые строки
-     * @param array $arr
-     */
-    public static function removeToEmptyItemAssoc(array $arr, $isRemoveNull = true, $isRemoveNullStr = true) {
-        $ret = [];
-        foreach ($arr as $key => $val) {
-            if (trim($val) === "") {
-                if (!$isRemoveNullStr) {
-                    $ret[$key] = $val;
-                }
-            }
-            elseif (is_null($val)) {
-                if (!$isRemoveNull) {
-                    $ret[$key] = $val;
-                }
-            }
-            else {
-                $ret[$key] = $val;
-            }
+    public static function restrictFilesItem($files, $attribute) {
+        $ret = array();
+        foreach ($files as $key => $value) {
+            $ret[$key] = $value[$attribute];
         }
         return $ret;
     }
@@ -174,41 +152,6 @@ abstract class HtmlHelper
         finally {
             ob_end_clean();
         }
-    }
-}
-
-/**
- * Класс для работы с запросом
- */
-abstract class RequestHelper {
-    /**
-     * Возвращает значение переменной из глобальной переменной $_POST
-     * @param string $name имя искомого поля
-     * @param mixed $defaultValue значение которое вернется, если данного поля не существует
-     * @return mixed
-     */
-    public static function getRequestPostValue($name, $defaultValue = null) {
-        return ArrayHelper::getIsSet($name, $_POST, $defaultValue);
-    }
-    
-    /**
-     * Возвращает значение переменной из глобальной переменной $_GET
-     * @param string $name имя искомого поля
-     * @param mixed $defaultValue значение которое вернется, если данного поля не существует
-     * @return mixed
-     */
-    public static function getRequestGetValue($name, $defaultValue = null) {
-        return ArrayHelper::getIsSet($name, $_GET, $defaultValue);
-    }
-    
-    /**
-     * Возвращает значение переменной из глобальной переменной $_REQUEST
-     * @param string $name имя искомого поля
-     * @param mixed $defaultValue значение которое вернется, если данного поля не существует
-     * @return mixed
-     */
-    public static function getRequestValue($name, $defaultValue = null) {
-        return ArrayHelper::getIsSet($name, $_REQUEST, $defaultValue);
     }
 }
 
