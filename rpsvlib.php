@@ -1,10 +1,17 @@
 <?php
 
+/*
+Plugin Name: RPSVlib
+Description: библиотека для облегчения написания кода и работы с API WP (можно не подключать, а просто include'ить)
+Version: 0.12.14
+Author: I.RPSV
+*/
+
 /**
  * Один единственный файл библиотеки для удобства подключения,
  * да и не так уж и много здесь кода.
  * 
- * @version 0.10.14
+ * @version 0.9.14
  */
 
 namespace RPSV;
@@ -153,10 +160,43 @@ abstract class HtmlHelper
                 extract($attributes, EXTR_OVERWRITE);
             }
             include $path;
-            return ob_get_contents();
+            return ob_end_clean();
         }
-        finally {
+        catch (Exception $e) {
             ob_end_clean();
+            throw $e;
+        }
+    }
+}
+
+class DbHelper
+{
+    public static function query($q) {
+        /* @var $wpdb \wpdb */
+        global $wpdb;
+        return $wpdb->query($q);
+    }
+    
+    public static function startTransaction() {
+        return self::query('START TRANSACTION');
+    }
+    
+    public static function commit() {
+        return self::query('COMMIT');
+    }
+    
+    public static function rollback() {
+        return self::query('ROLLBACK');
+    }
+    
+    public static function transaction($callback) {
+        try {
+            self::startTransaction();
+            $callback();
+            self::commit();
+        } catch (Exception $ex) {
+            self::rollback();
+            throw $ex;
         }
     }
 }
@@ -482,6 +522,7 @@ class Metabox
             $f($this);
         }
         else {
+            $model = & $this;
             include $this->renderCallback;
         }
     }
