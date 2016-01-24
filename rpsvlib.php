@@ -4,7 +4,7 @@
  * Один единственный файл библиотеки для удобства подключения,
  * да и не так уж и много здесь кода.
  * 
- * @version 0.9.14
+ * @version 0.10.14
  */
 
 namespace RPSV;
@@ -76,10 +76,16 @@ abstract class ArrayHelper
         return $ret;
     }
     
-    public static function restrictFilesItem($files, $attribute) {
+    public static function restrictFilesItem($files) {
         $ret = array();
-        foreach ($files as $key => $value) {
-            $ret[$key] = $value[$attribute];
+        for ($i=0; isset($files['name'][$i]); $i++) {
+            $ret[] = array(
+                "name" => $files['name'][$i],
+                "type" => $files['type'][$i],
+                "tmp_name" => $files['tmp_name'][$i],
+                "size" => $files['size'][$i],
+                "error" => $files['error'][$i],
+            );
         }
         return $ret;
     }
@@ -404,7 +410,7 @@ class PostType
 class Metabox
 {
     /**
-     * ID метабокса
+     * ID контейнера метабокса
      */
     public $id;
     /**
@@ -436,7 +442,6 @@ class Metabox
     
     public function init() {
         $this->renderCallback = function($model) {
-            /* @var $model Metabox */
             global $post;
             $value = get_post_meta($post->ID, $model->name, true);
             echo "<input type='text' name='{$model->id}' value='{$value}' />";
@@ -472,8 +477,13 @@ class Metabox
      */
     public function render() {
         wp_nonce_field($this->id, sha1($this->id));
-        $f = $this->renderCallback;
-        $f($this);
+        if (is_callable($this->renderCallback)) {
+            $f = $this->renderCallback;
+            $f($this);
+        }
+        else {
+            include $this->renderCallback;
+        }
     }
     
     /**
