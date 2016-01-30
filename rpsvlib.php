@@ -603,8 +603,11 @@ class AdminMenu {
      */
     public $position;
     
-    public function __construct() {
+    public function __construct($page_title, $menu_title, $menu_slug) {
         $this->init();
+        $this->pageTitle = $page_title;
+        $this->menuSlug = $menu_slug;
+        $this->menuTitle = $menu_title;
         add_action('admin_menu',[$this,'register']);
     }
     
