@@ -626,7 +626,8 @@ class AdminMenu {
 
     public function init() {
         $this->iconUrl = '';
-        $this->capability = get_role('administrator')->capabilities;
+        //$this->capability = get_role('administrator')->capabilities;
+        $this->capability = 'manage_options';
     }
 
     public function register() {
