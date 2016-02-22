@@ -113,6 +113,10 @@ class ArrayHelper
         return self::getIsSet($_POST, $key, $defaultValue);
     }
     
+    public static function getOf_REQUEST($key, $defaultValue = null) {
+        return self::getIsSet($_REQUEST, $key, $defaultValue);
+    }
+    
     public static function restrictFilesItem($files) {
         $ret = array();
         for ($i=0; isset($files['name'][$i]); $i++) {
@@ -125,6 +129,24 @@ class ArrayHelper
             );
         }
         return $ret;
+    }
+}
+
+class HtmlHelper
+{
+    public static function select($options, $values, $selectedValue, $isUseKey = true) {
+        $html = "<select {$options}>";
+        foreach ($values as $key => $val) {
+            if ($isUseKey) {
+                $selected = $selectedValue == $key ? " selected='selected' " : "";
+                $html .= "<option value='{$key}' {$selected}>{$val}</option>";
+            }
+            else {
+                $selected = $selectedValue == $val ? " selected='selected' " : "";
+                $html .= "<option {$selected}>{$val}</option>";
+            }
+        }
+        return $html . "</select>";
     }
 }
 
@@ -145,7 +167,7 @@ abstract class Shortcode extends Object
      * Значения параметров по умолчанию
      * @var array
      */
-    public $default;
+    public $default = [];
     public $render;
     
     public function __construct($attributes = array(), $isAutoRegister = false) {
@@ -235,8 +257,8 @@ abstract class ObjectPage extends Object
         $this->menu_title = $title;
     }
     
-    public function renderFile($filepath) {
-        $this->function = function($atts) use ($filepath) {
+    public function renderFile($filepath, $attributes = null) {
+        $this->function = function($params) use ($filepath,$attributes) {
             include $filepath;
         };
     }
@@ -274,9 +296,7 @@ class AdminSubPage extends ObjectPage
     public $parent_slug;
     
     public function init() {
-        add_action($this->hook,function(){
-            $this->register();
-        });
+        add_action($this->hook,[$this,'register']);
     }
     
     public function register() {
@@ -483,15 +503,15 @@ class Post extends Object
      * @param string $many1 именительный (кто? что?)
      * @param string $many2 родительный (кого? чего?)
      */
-    public function initLabels($sing1, $sing2, $many1, $many2) {
+    public function initLabels($sing1, $sing2, $many1, $many2, $menuName = null) {
         $this->labels = [];
         $this->labels['name']                   = $many1;
         $this->labels['singular_name']          = $sing1;
         $this->labels['add_new']                = "Добавить";
-        $this->labels['add_new_item']           = "Добавить ".$sing2;
-        $this->labels['edit_item']              = "Редактировать ".$sing2;
-        $this->labels['new_item']               = "Создать ".$sing2;
-        $this->labels['view_item']              = "Посмотреть ".$sing2;
+        $this->labels['add_new_item']           = "Добавление ".$sing2;
+        $this->labels['edit_item']              = "Редактирование ".$sing2;
+        $this->labels['new_item']               = "Создание ".$sing2;
+        $this->labels['view_item']              = "Посмотр ".$sing2;
         $this->labels['search_items']           = "Поиск ".$many2;
         $this->labels['not_found']              = $many1." не найдены";
         $this->labels['not_found_in_trash']     = $many1." в корзине не найдены";
@@ -500,11 +520,11 @@ class Post extends Object
         $this->labels['archives']               = "Архив ".$many2;
         $this->labels['insert_into_item']       = "Вставить в ".$sing2;
         $this->labels['uploaded_to_this_item']  = "Uploaded to this ".$sing1;
-        $this->labels['featured_image']         = "Популярные изображения";
-        $this->labels['set_featured_image']     = "Установить популярные изображения";
-        $this->labels['remove_featured_image']  = "Удалить популярные изображения";
-        $this->labels['use_featured_image']     = "Использователь популярные изображения";
-        $this->labels['menu_name']              = $many1;
+        $this->labels['featured_image']         = "Миниатюра";
+        $this->labels['set_featured_image']     = "Выбрать миниатюру";
+        $this->labels['remove_featured_image']  = "Удалить";
+        $this->labels['use_featured_image']     = "Использовать минатюру";
+        $this->labels['menu_name']              = $menuName ? $menuName : $many1;
         $this->labels['filter_items_list']      = "Filter items list";
         $this->labels['items_list_navigation']  = "Items list navigation";
         $this->labels['items_list']             = "Items list";
@@ -544,16 +564,16 @@ class MetaboxPriority
 
 class Metabox extends Object
 {
-    public $id;
-    public $title;
+    public $id; // required
+    public $title; // required
     public $screen;
     public $context = MetaboxContext::ADVANCED;
     public $priority = 'default';
-    public $callback;
+    public $callback; // required
     public $callback_args;
     //
     public $post_type;
-    public $saveCallback;
+    public $saveCallback; // required
     
     public function __construct($attributes = array()) {
         parent::__construct($attributes);
@@ -578,6 +598,10 @@ class Metabox extends Object
         );
     }
     
+    public function setRenderFile($filepath) {
+        $this->renderFile($filepath);
+    }
+    
     public function renderFile($filepath) {
         $this->callback = function() use ($filepath) {
             include $filepath;
@@ -594,11 +618,238 @@ class Metabox extends Object
 
 /*
  * **********************************************
- * ****************** META **********************
+ * ****************** TAX ***********************
  * **********************************************
  */
 
-class Meta
+class Tax extends Object
 {
+    /**
+     * Название таксономии
+     * @var string
+     */
+    public $taxonomy;
+    /**
+     * Название типа объекта таксономии
+     * @var string|array
+     */
+    public $object_type;
+    /**
+     * Заголовок
+     * @var string
+     */
+    public $label;
+    /**
+     * Заголовоки
+     * @var array
+     */
+    public $labels;
+    /**
+     * Краткое описание таксономии
+     * @var string
+     */
+    public $description;
+    /**
+     * Доступность таксономии
+     * @var boolean
+     */
+    public $public = true;
+    /**
+     * Иерархическая ли таксономия
+     * @var boolean
+     */
+    public $hierarchical = false;
+    /**
+     * Доступность в админке
+     * @var boolean
+     */
+    public $show_ui = true;
+    /**
+     * Доступность в меню админке
+     * @var boolean
+     */
+    public $show_in_menu = true;
+    /**
+     * Доступность в меню навигации
+     * @var boolean
+     */
+    public $show_in_nav_menus = true;
+    /**
+     * Доступность в облаке тегов
+     * @var boolean
+     */
+    public $show_tagcloud = true;
+    /**
+     * Доступность быстрого редактирования
+     * @var boolean
+     */
+    public $show_in_quick_edit = true;
+    /**
+     * Показывать ли таксономию в листинге объектов
+     * @var boolean
+     */
+    public $show_admin_column = false;
+    /**
+     * Метабокс для таксономии
+     * @var boolean|callable
+     */
+    public $meta_box_cb;
+    /**
+     * Права доступа
+     * @var array
+     */
+    public $capabilities = [];
+    /**
+     * Rewrite
+     * @var boolean|array
+     */
+    public $rewrite;
+    /**
+     * Query var
+     * @var string
+     */
+    public $query_var;
+    /**
+     * Функция обновления количества записей
+     * @var callable
+     */
+    public $update_count_callback;
     
+    public function __construct($attributes = array()) {
+        parent::__construct($attributes);
+        add_action('init',[$this,'register']);
+    }
+    
+    public function register() {
+        register_taxonomy($this->taxonomy, $this->object_type, $this->getAttributes());
+    }
+    
+    public function getAttributes() {
+        $atts = get_object_vars($this);
+        if (is_null($atts['query_var'])) {
+            $atts['query_var'] = $this->taxonomy;
+        }
+        unset($atts['taxonomy']);
+        unset($atts['object_type']);
+        return $atts;
+    }
+    
+    public function getTerms($fields = 'names') {
+        return get_terms($this->taxonomy, [
+            "orderby" => "name",
+            "fields" => $fields,
+            "get" => "all"
+        ]);
+    }
+    
+    public function getValues($post = null) {
+        return get_the_terms($post, $this->taxonomy);
+    }
+    
+    /**
+     * Инициализация лейблов
+     * @param string $sing1 именительный (кто? что?)
+     * @param string $sing2 винительный (кого? что?)
+     * @param string $many1 именительный (кто? что?)
+     * @param string $many2 винительный (кого? что?)
+     */
+    public function initLabels($sing1, $sing2, $many1, $many2) {
+        $this->labels = [];
+        $this->labels['name']                   = $many1;
+        $this->labels['singular_name']          = $sing1;
+        $this->labels['menu_name']              = $many1;
+        $this->labels['all_items']              = "Все ".$many1;
+        $this->labels['add_new_item']           = "Добавить ".$sing2;
+        $this->labels['edit_item']              = "Редактировать ".$sing2;
+        $this->labels['update_item']            = "Обновить ".$sing2;
+        $this->labels['view_item']              = "Посмотреть ".$sing2;
+        $this->labels['new_item_name']          = "New ".$sing1;
+        $this->labels['parent_item']            = "Родительский элемент";
+        $this->labels['parent_item_colon']      = "Родительский элемент:";
+        $this->labels['search_items']           = "Поиск ".$many2;
+        $this->labels['popular_items']          = "Популярные ".$many1;
+        $this->labels['separate_items_with_commas'] = null;
+        $this->labels['add_or_remove_items']        = "Добавить или удалить ".$many2;
+        $this->labels['choose_from_most_used']      = "Часто используемые ".$many1;
+        $this->labels['not_found']                  = $many2." не найдены";
+    }
 }
+
+/*
+ * **********************************************
+ * *************** GRID VIEW ********************
+ * **********************************************
+ */
+abstract class GridView extends Object
+{
+    public $columns;
+    
+    abstract public function getHookFilterName();
+    abstract public function getHookActionName();
+    
+    public function __construct($attributes = array()) {
+        parent::__construct($attributes);
+        add_action('init',[$this,'register']);
+    }
+    
+    public function addColumn($name, $label, $render) {
+        $this->columns[$name] = [
+            "label" => $label,
+            "render" => $render
+        ];
+    }
+    
+    public function register() {
+        add_filter($this->getHookFilterName(), [$this,'manageColumns']);
+        add_action($this->getHookActionName(), [$this,'renderColumn'], 10, 2);
+    }
+    
+    public function manageColumns($columns) {
+        foreach ($this->columns as $name => $data) {
+            $columns[$name] = $data['label'];
+        }
+        return $columns;
+    }
+    
+    public function renderColumn($column, $id_post) {
+        $data = ArrayHelper::getIsSet($this->columns, $column, false);
+        if ($data) {
+            echo call_user_func($data['render'], $id_post);
+        }
+    }
+}
+
+class GridViewPost extends GridView
+{
+    public $post_type;
+    
+    public function getHookFilterName() {
+        if ($this->post_type) {
+            return "manage_{$this->post_type}_posts_columns";
+        }
+        return 'manage_posts_columns';
+    }
+    
+    public function getHookActionName() {
+        if ($this->post_type) {
+            return "manage_{$this->post_type}_posts_custom_column";
+        }
+        return 'manage_posts_custom_column';
+    }
+}
+
+/**
+ * NOT WORKING
+ *//*
+class GridViewTax extends GridView
+{
+    public $taxonomy;
+    
+    public function getHookFilterName() {
+        return "manage_{$this->taxonomy}_columns";
+    }
+    
+    public function getHookActionName() {
+        return "manage_{$this->taxonomy}_custom_column";
+    }
+}*/
