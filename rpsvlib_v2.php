@@ -193,7 +193,7 @@ class ShortcodeFile extends Shortcode
     public function render($atts) {
         extract(shortcode_atts($this->default, $atts));
         ob_start();
-        include $this->render;
+        echo include $this->render;
         return ob_get_clean();
     }
 }

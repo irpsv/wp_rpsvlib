@@ -1,2 +1,8 @@
-# wp_rpsvlib
-Библиотека облегчающая написание плагинов для WordPress
+#FastCoddingLib WordPress
+
+Библиотека для быстрого коддинга плагин для WordPress
+
+## Post
+
+Для создания постов используется класс *PostType*:
+
